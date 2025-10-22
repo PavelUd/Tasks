@@ -13,6 +13,13 @@ class Program
     {
         var lines = new List<string>();
         string line;
-        Console.WriteLine("12345");
+
+        while ((line = Console.ReadLine()) != null)
+        {
+            lines.Add(line);
+        }
+
+        int result = Solve(lines);
+        Console.WriteLine(result);
     }
 }
