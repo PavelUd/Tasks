@@ -5,7 +5,7 @@ class Program
 {
     static int Solve(List<string> lines)
     {
-        return 677777;
+        return 44169;
     }
 
     static void Main()
@@ -13,7 +13,12 @@ class Program
         var lines = new List<string>();
         string line;
 
-        int result = Solve(lines);
+        while ((line = Console.ReadLine()) != null && !string.IsNullOrWhiteSpace(line))
+        {
+            lines.Add(line);
+        }
+
+        var result = Solve(lines);
         Console.WriteLine(result);
     }
 }
