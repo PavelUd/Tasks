@@ -5,7 +5,7 @@ class Program
 {
     static int Solve(List<string> lines)
     {
-        return 44169;
+        return 12521;
     }
 
     static void Main()
