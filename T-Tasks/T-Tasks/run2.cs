@@ -53,7 +53,9 @@ public class Program
             flag = true;
         }
 
-        foreach (var act in actions)
+        foreach (var act in actions
+                     .OrderBy(a => a.Split('-')[0]) 
+                     .ThenBy(a => a.Split('-')[1]))
         {
             Console.WriteLine(act);
         }
@@ -81,7 +83,7 @@ public class Program
                 continue;
             }
 
-            foreach (var neighbor in graph[node].OrderBy(n => n))
+            foreach (var neighbor in graph[node])
                 if (visited.Add(neighbor))
                 {
                     var newPath = new List<string>(path) { neighbor };
