@@ -28,25 +28,29 @@ public class Program
         }
 
         var start = "a";
+        var path = FindNearestGateway(start, graph, gateways);
         var actions = new List<string>();
-
+        var flag = false;
         while (true)
         {
-            var path = FindNearestGateway(start, graph, gateways);
             if (path == null) break;
-
+            
             var pt = path.Value.Path;
             var gateway = path.Value.Gateway;
+            if (flag)
+            {
+                start = pt.Count > 1 ? pt[1] : pt[0];
+            }
 
             if (pt.Count == 1) break;
 
             var point = pt[^2];
             actions.Add($"{gateway}-{point}");
-            
+
             graph[point].Remove(gateway);
             graph[gateway].Remove(point);
-
-            start = pt.Count > 1 ? pt[1] : pt[0];
+            path = FindNearestGateway(start, graph, gateways);
+            flag = true;
         }
 
         foreach (var act in actions
