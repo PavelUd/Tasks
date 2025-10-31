@@ -29,14 +29,16 @@ public class Program
 
         var start = "a";
         var path = FindNearestGateway(start, graph, gateways);
-        var actions = new List<string>();
+        var actions = new List<(string Gateway, string Point, int PathLength)>();
         var flag = false;
+
         while (true)
         {
             if (path == null) break;
-            
+
             var pt = path.Value.Path;
             var gateway = path.Value.Gateway;
+
             if (flag)
             {
                 start = pt.Count > 1 ? pt[1] : pt[0];
@@ -45,20 +47,23 @@ public class Program
             if (pt.Count == 1) break;
 
             var point = pt[^2];
-            actions.Add($"{gateway}-{point}");
+            actions.Add((gateway, point, pt.Count));
 
             graph[point].Remove(gateway);
             graph[gateway].Remove(point);
+
             path = FindNearestGateway(start, graph, gateways);
             flag = true;
         }
-
+        
         foreach (var act in actions
-                     .OrderBy(a => a.Split('-')[0]) 
-                     .ThenBy(a => a.Split('-')[1]))
+                     .OrderBy(a => a.PathLength)
+                     .ThenBy(a => a.Gateway)
+                     .ThenBy(a => a.Point))
         {
-            Console.WriteLine(act);
+            Console.WriteLine($"{act.Gateway}-{act.Point}");
         }
+
     }
 
     private static (string Gateway, List<string> Path)? FindNearestGateway(
