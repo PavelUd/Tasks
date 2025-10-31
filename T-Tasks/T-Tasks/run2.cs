@@ -26,7 +26,7 @@ internal class Program
 
         while (true)
         {
-            var path = FindNearestGateway(start, graph, gateways);
+            var path = FindNearestGateway("a", graph, gateways);
             if (path == null) break;
 
             var pt = path.Value.Path;
@@ -40,7 +40,7 @@ internal class Program
             graph[point].Remove(gateway);
             graph[gateway].Remove(point);
 
-            start = pt.Count > 1 ? pt[1] : pt[0];
+            start = pt.Count > 2 ? pt[1] : pt[0];
         }
 
         foreach (var act in actions)
