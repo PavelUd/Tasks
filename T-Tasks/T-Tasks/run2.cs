@@ -1,4 +1,10 @@
-internal class Program
+using System; 
+using System.Collections.Generic;
+using System.Linq; 
+
+namespace T_Tasks;
+
+public class Program
 {
     private static void Main()
     {
@@ -22,15 +28,19 @@ internal class Program
         }
 
         var start = "a";
+        var path = FindNearestGateway(start, graph, gateways);
         var actions = new List<string>();
-
+        var flag = false;
         while (true)
         {
-            var path = FindNearestGateway("a", graph, gateways);
             if (path == null) break;
-
+            
             var pt = path.Value.Path;
             var gateway = path.Value.Gateway;
+            if (flag)
+            {
+                start = pt.Count > 1 ? pt[1] : pt[0];
+            }
 
             if (pt.Count == 1) break;
 
@@ -39,8 +49,8 @@ internal class Program
 
             graph[point].Remove(gateway);
             graph[gateway].Remove(point);
-
-            start = pt.Count > 2 ? pt[1] : pt[0];
+            path = FindNearestGateway(start, graph, gateways);
+            flag = true;
         }
 
         foreach (var act in actions)
