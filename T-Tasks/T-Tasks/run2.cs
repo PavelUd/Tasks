@@ -50,7 +50,7 @@ class Program
             _map[point].Remove(gateway);
             _map[gateway].Remove(point);
 
-            var nextStart = pt.Count > 1 ? pt[1] : pt[0];
+            var nextStart = pt.Count > 2 ? pt[1] : pt[0];
             path = FindNearestGateway(nextStart, _map, _gateways);
         }
         
