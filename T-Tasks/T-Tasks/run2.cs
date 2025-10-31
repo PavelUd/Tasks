@@ -47,7 +47,7 @@ class Program
                 break;
             }
             var point = pt[^2];
-            Console.WriteLine($"{gateway} - {point}");
+            Console.WriteLine($"{gateway}-{point}");
             _map[point].Remove(gateway);
             _map[gateway].Remove(point);
             path = FindNearestGateway(pt[1], _map, gateways);

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 
-class Program
+class Programgg
 {
-    static void Main()
+    static void VMain()
     {
         var lines = new List<string>();
         string? line;
