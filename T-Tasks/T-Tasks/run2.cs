@@ -27,30 +27,26 @@ public static class Program
             if (char.IsUpper(u[0])) gateways.Add(u);
         }
 
-        var start = "a";
-        var path = FindNearestGateway(start, graph, gateways);
+        string start = "a"; 
         var actions = new List<string>();
-        var flag = false;
+
         while (true)
         {
+            var path = FindNearestGateway(start, graph, gateways);
             if (path == null) break;
+
             var pt = path.Value.Path;
             var gateway = path.Value.Gateway;
-            if (flag)
-            {
-                start = pt.Count > 1 ? pt[1] : pt[0];
-            }
 
-            if (pt.Count == 1)
-            {
-                break;
-            }
+            if (pt.Count == 1) break;
+
             var point = pt[^2];
             actions.Add($"{gateway}-{point}");
+            
             graph[point].Remove(gateway);
             graph[gateway].Remove(point);
-            path = FindNearestGateway(start, graph, gateways);
-            flag = true;
+
+            start = pt.Count > 2 ? pt[1] : pt[0];
         }
 
         foreach (var act in actions)
