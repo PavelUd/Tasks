@@ -1,8 +1,12 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 namespace T_Tasks;
 
-public class Program
+public static class Program
 {
-    private static void Main()
+    public static void Main()
     {
         var graph = new Dictionary<string, HashSet<string>>();
         var gateways = new HashSet<string>();
