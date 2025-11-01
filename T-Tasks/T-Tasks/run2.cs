@@ -16,6 +16,7 @@ public static class Program
         string? line;
         while (!string.IsNullOrWhiteSpace(line = Console.ReadLine()))
         {
+            tests.AppendLine(line);
             var tokens = line.Split('-');
             string u = tokens[0], v = tokens[1];
 
@@ -27,10 +28,6 @@ public static class Program
 
             if (char.IsUpper(v[0])) gateways.Add(v);
             if (char.IsUpper(u[0])) gateways.Add(u);
-        }
-        foreach (var kvp in graph)
-        {
-            tests.AppendLine($"{kvp.Key}: {string.Join(", ", kvp.Value)}");
         }
 
         try
@@ -58,11 +55,16 @@ public static class Program
                 path = FindNearestGateway(start, graph, gateways);
             }
 
-            foreach (var act in actions.Select(x => x.Split('-')).OrderBy(x => x[0]).ThenBy(x => x[1]))
+            var tss = actions.Select(x => x.Split('-')).OrderBy(x => x[0]).ThenBy(x => x[1]).ToList();
+            for (var i = 0; i < tss.Count; i++)
             {
-                Console.WriteLine($"{act[0]}-{act[1]}");
+                var act = actions[i].Split('-');
+                if (act[0] != tss[i][0] || act[1] != tss[i][1])
+                {
+                    throw new Exception();
+                }
+                Console.WriteLine($"{tss[i][0]}-{tss[i][1]}");
             }
-            var t = tests.ToString();
         }
         catch (Exception ex)
         {
