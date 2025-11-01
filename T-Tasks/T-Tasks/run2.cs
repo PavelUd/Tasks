@@ -51,7 +51,7 @@ public static class Program
 
         foreach (var act in actions.Select(x=>x.Split('-')).OrderBy(x=>x[0]).ThenBy(x=>x[1]))
         {
-            Console.WriteLine(act);
+            Console.WriteLine($"{act[0]}-{act[1]}");
         }
     }
 
