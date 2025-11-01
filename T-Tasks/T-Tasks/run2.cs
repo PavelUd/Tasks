@@ -27,26 +27,26 @@ public static class Program
             if (char.IsUpper(u[0])) gateways.Add(u);
         }
 
-        string start = "a"; 
+        var start = "a";
+        var path = FindNearestGateway(start, graph, gateways);
         var actions = new List<string>();
-
+        var flag = false;
         while (true)
         {
-            var path = FindNearestGateway(start, graph, gateways);
             if (path == null) break;
-
             var pt = path.Value.Path;
             var gateway = path.Value.Gateway;
+            start = pt.Count > 2 ? pt[1] : pt[0];
 
-            if (pt.Count == 1) break;
-
-            var point = pt[^2];
+            if (pt.Count == 1)
+            {
+                break;
+            }
+            var point = path.Value.Point;
             actions.Add($"{gateway}-{point}");
-            
             graph[point].Remove(gateway);
             graph[gateway].Remove(point);
-
-            start = pt.Count > 2 ? pt[1] : pt[0];
+            path = FindNearestGateway(start, graph, gateways);
         }
 
         foreach (var act in actions)
@@ -55,44 +55,65 @@ public static class Program
         }
     }
 
-    private static (string Gateway, List<string> Path)? FindNearestGateway(
-        string start,
-        Dictionary<string, HashSet<string>> graph,
-        HashSet<string> gateways)
+    private static (string Gateway, string Point, List<string> Path)? FindNearestGateway(
+    string start,
+    Dictionary<string, HashSet<string>> graph,
+    HashSet<string> gateways)
+{
+    var queue = new Queue<(string Node, List<string> Path)>();
+    var visited = new HashSet<string> { start };
+
+    // Для каждого шлюза храним узел перед ним и длину пути
+    var shh = new Dictionary<string, (string NodeBefore, int Length)>();
+    var nearest = new List<(string Gateway, List<string> Path)>();
+
+    queue.Enqueue((start, new List<string> { start }));
+
+    while (queue.Count > 0)
     {
-        var queue = new Queue<(string Node, List<string> Path)>();
-        var visited = new HashSet<string> { start };
+        var (node, path) = queue.Dequeue();
 
-        queue.Enqueue((start, new List<string> { start }));
-
-        var nearest = new List<(string Gateway, List<string> Path)>();
-
-        while (queue.Count > 0)
+        if (gateways.Contains(node))
         {
-            var (node, path) = queue.Dequeue();
-
-            if (gateways.Contains(node))
-            {
-                nearest.Add((node, path));
-                continue;
-            }
-
-            foreach (var neighbor in graph[node])
-                if (gateways.Contains(neighbor) || visited.Add(neighbor))
-                {
-                    var newPath = new List<string>(path) { neighbor };
-                    queue.Enqueue((neighbor, newPath));
-                }
+            nearest.Add((node, path));
+            continue;
         }
 
-        if (nearest.Count == 0) return null;
-
-        var result = nearest
-            .OrderBy(x => x.Path.Count)
-            .ThenBy(x => x.Gateway)
-            .ThenBy(x=>x.Path[^2])
-            .First();
-
-        return result;
+        if (!graph.ContainsKey(node)) 
+            continue;
+        foreach (var neighbor in graph[node].OrderBy(n => n))
+        {
+            if (gateways.Contains(neighbor))
+            {
+                if (!shh.ContainsKey(neighbor))
+                {
+                    shh[neighbor] = (node, path.Count);
+                }
+                else
+                {
+                    var info = shh[neighbor];
+                    if (info.Length > path.Count || (info.Length == path.Count && string.Compare(info.NodeBefore, node, StringComparison.Ordinal) > 0))
+                    {
+                        shh[neighbor] = (node, path.Count);
+                    }
+                }
+            }
+            if (visited.Add(neighbor))
+            {
+                var newPath = new List<string>(path) { neighbor };
+                queue.Enqueue((neighbor, newPath));
+            }
+        }
     }
+
+    if (nearest.Count == 0) 
+        return null;
+    
+    var chosen = nearest
+        .OrderBy(x => x.Path.Count)
+        .ThenBy(x => x.Gateway, StringComparer.Ordinal)
+        .First();
+
+    return (chosen.Gateway, shh[chosen.Gateway].NodeBefore, chosen.Path);
+}
 }
