@@ -1,7 +1,3 @@
-using System; 
-using System.Collections.Generic;
-using System.Linq; 
-
 namespace T_Tasks;
 
 public class Program
@@ -29,41 +25,34 @@ public class Program
 
         var start = "a";
         var path = FindNearestGateway(start, graph, gateways);
-        var actions = new List<(string Gateway, string Point, int PathLength)>();
+        var actions = new List<string>();
         var flag = false;
-
         while (true)
         {
             if (path == null) break;
-
             var pt = path.Value.Path;
             var gateway = path.Value.Gateway;
-
             if (flag)
             {
                 start = pt.Count > 1 ? pt[1] : pt[0];
             }
 
-            if (pt.Count == 1) break;
-
+            if (pt.Count == 1)
+            {
+                break;
+            }
             var point = pt[^2];
-            actions.Add((gateway, point, pt.Count));
-
+            actions.Add($"{gateway}-{point}");
             graph[point].Remove(gateway);
             graph[gateway].Remove(point);
-
             path = FindNearestGateway(start, graph, gateways);
             flag = true;
         }
-        
-        foreach (var act in actions
-                     .OrderBy(a => a.PathLength)
-                     .ThenBy(a => a.Gateway)
-                     .ThenBy(a => a.Point))
-        {
-            Console.WriteLine($"{act.Gateway}-{act.Point}");
-        }
 
+        foreach (var act in actions)
+        {
+            Console.WriteLine(act);
+        }
     }
 
     private static (string Gateway, List<string> Path)? FindNearestGateway(
@@ -97,10 +86,11 @@ public class Program
         }
 
         if (nearest.Count == 0) return null;
-        
+
         var result = nearest
             .OrderBy(x => x.Path.Count)
             .ThenBy(x => x.Gateway)
+            .ThenBy(x=>x.Path[^2])
             .First();
 
         return result;
