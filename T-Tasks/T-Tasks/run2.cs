@@ -49,7 +49,7 @@ public static class Program
             path = FindNearestGateway(start, graph, gateways);
         }
 
-        foreach (var act in actions)
+        foreach (var act in actions.Select(x=>x.Split('-')).OrderBy(x=>x[0]).ThenBy(x=>x[1]))
         {
             Console.WriteLine(act);
         }
