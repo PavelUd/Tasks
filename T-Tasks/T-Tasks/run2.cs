@@ -82,7 +82,7 @@ public static class Program
             }
 
             foreach (var neighbor in graph[node])
-                if (visited.Add(neighbor))
+                if (gateways.Contains(neighbor) || visited.Add(neighbor))
                 {
                     var newPath = new List<string>(path) { neighbor };
                     queue.Enqueue((neighbor, newPath));
