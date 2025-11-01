@@ -36,13 +36,13 @@ public static class Program
             if (path == null) break;
             var pt = path.Value.Path;
             var gateway = path.Value.Gateway;
-            start = pt.Count > 2 ? pt[1] : pt[0];
+            start = path.Value.Point;
 
             if (pt.Count == 1)
             {
                 break;
             }
-            var point = path.Value.Point;
+            var point = path.Value.Path[^2];
             actions.Add($"{gateway}-{point}");
             graph[point].Remove(gateway);
             graph[gateway].Remove(point);
@@ -55,65 +55,52 @@ public static class Program
         }
     }
 
-    private static (string Gateway, string Point, List<string> Path)? FindNearestGateway(
-    string start,
-    Dictionary<string, HashSet<string>> graph,
-    HashSet<string> gateways)
-{
-    var queue = new Queue<(string Node, List<string> Path)>();
-    var visited = new HashSet<string> { start };
-
-    // Для каждого шлюза храним узел перед ним и длину пути
-    var shh = new Dictionary<string, (string NodeBefore, int Length)>();
-    var nearest = new List<(string Gateway, List<string> Path)>();
-
-    queue.Enqueue((start, new List<string> { start }));
-
-    while (queue.Count > 0)
+    private static (string Gateway,string Point, List<string> Path)? FindNearestGateway(
+        string start,
+        Dictionary<string, HashSet<string>> graph,
+        HashSet<string> gateways)
     {
-        var (node, path) = queue.Dequeue();
+        var queue = new Queue<(string Node, List<string> Path)>();
+        var visited = new HashSet<string> { start };
 
-        if (gateways.Contains(node))
-        {
-            nearest.Add((node, path));
-            continue;
-        }
+        var shh = new Dictionary<string,(string node, int length)>();
+        queue.Enqueue((start, new List<string> { start }));
 
-        if (!graph.ContainsKey(node)) 
-            continue;
-        foreach (var neighbor in graph[node].OrderBy(n => n))
+        var nearest = new List<(string Gateway, List<string> Path)>();
+
+        while (queue.Count > 0)
         {
-            if (gateways.Contains(neighbor))
+            var (node, path) = queue.Dequeue();
+
+            if (gateways.Contains(node))
             {
-                if (!shh.ContainsKey(neighbor))
-                {
-                    shh[neighbor] = (node, path.Count);
-                }
-                else
-                {
-                    var info = shh[neighbor];
-                    if (info.Length > path.Count || (info.Length == path.Count && string.Compare(info.NodeBefore, node, StringComparison.Ordinal) > 0))
-                    {
-                        shh[neighbor] = (node, path.Count);
-                    }
-                }
+                nearest.Add((node, path));
+                continue;
             }
-            if (visited.Add(neighbor))
+
+            foreach (var neighbor in graph[node])
             {
-                var newPath = new List<string>(path) { neighbor };
-                queue.Enqueue((neighbor, newPath));
+                if (gateways.Contains(neighbor) || visited.Add(neighbor))
+                {
+                    var newPath = new List<string>(path) { neighbor };
+                    queue.Enqueue((neighbor, newPath));
+                }
+                
             }
         }
+
+        if (nearest.Count == 0) return null;
+
+        var r = nearest
+            .OrderBy(x => x.Path.Count)
+            .ThenBy(x => x.Gateway);
+        var greatPt = r.ThenBy(x => x.Path[^2]).First(); 
+        nearest.Remove(greatPt);
+        if (nearest.Count == 0)
+        {
+            return (greatPt.Gateway, greatPt.Path[0], greatPt.Path);
+        }
+        var virusStart = r.ThenBy(x => x.Path[1]).First();
+        return (greatPt.Gateway, virusStart.Path[1], greatPt.Path);
     }
-
-    if (nearest.Count == 0) 
-        return null;
-    
-    var chosen = nearest
-        .OrderBy(x => x.Path.Count)
-        .ThenBy(x => x.Gateway, StringComparer.Ordinal)
-        .First();
-
-    return (chosen.Gateway, shh[chosen.Gateway].NodeBefore, chosen.Path);
-}
 }
