@@ -1,22 +1,20 @@
-using System;
+using System; 
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Linq; 
 
 namespace T_Tasks;
 
-public static class Program
+public class Program
 {
-    private static StringBuilder tests = new StringBuilder();
     public static void Main()
     {
         var graph = new Dictionary<string, HashSet<string>>();
-        var gateways = new HashSet<string>();
+        
+        var gateways = new SortedDictionary<string, SortedSet<string>>();
 
         string? line;
         while (!string.IsNullOrWhiteSpace(line = Console.ReadLine()))
         {
-            tests.AppendLine(line);
             var tokens = line.Split('-');
             string u = tokens[0], v = tokens[1];
 
@@ -26,54 +24,79 @@ public static class Program
             graph[u].Add(v);
             graph[v].Add(u);
 
-            if (char.IsUpper(v[0])) gateways.Add(v);
-            if (char.IsUpper(u[0])) gateways.Add(u);
+            if (char.IsUpper(v[0]))
+            {
+                if (gateways.ContainsKey(v))
+                {
+                    gateways[v].Add(u);
+                }
+                else
+                {
+                    gateways[v] = new SortedSet<string>(){u};
+                }
+            }
+
+            if (char.IsUpper(u[0]))
+            {
+                if (gateways.ContainsKey(u))
+                {
+                    gateways[u].Add(v);
+                }
+                else
+                {
+                    gateways[v] = new SortedSet<string>(){v};
+                }
+            }
         }
 
-        try
+        var start = "a";
+        var actions = new List<string>();
+
+        while (true)
         {
-            var start = "a";
-            var path = FindNearestGateway(start, graph, gateways);
-            var actions = new List<string>();
-            var flag = false;
-            while (true)
+            var path = FindNearestGateway(start, graph, gateways.Keys.ToHashSet());
+            if (path == null) break;
+
+            var pt = path.Value.Path;
+            var gateway = path.Value.Gateway;
+
+            if (pt.Count == 1) break;
+
+            string point;
+            if (pt.Count == 2)
             {
-                if (path == null) break;
-                var pt = path.Value.Path;
-                var gateway = path.Value.Gateway;
-                start = path.Value.Point;
-
-                if (pt.Count == 1)
-                {
-                    break;
-                }
-
-                var point = path.Value.Path[^2];
+                 point = pt[^2];
                 actions.Add($"{gateway}-{point}");
-                graph[point].Remove(gateway);
-                graph[gateway].Remove(point);
-                path = FindNearestGateway(start, graph, gateways);
+            }
+            else
+            {
+                var t = gateways.First();
+                gateway = t.Key;
+                point = t.Value.First();
+                t.Value.Remove(point);
+                if (t.Value.Count == 0)
+                {
+                    gateways.Remove(gateway);
+                }
+                
+                actions.Add($"{gateway}-{point}");
             }
 
-            var tss = actions.Select(x => x.Split('-')).OrderBy(x => x[0]).ThenBy(x => x[1]).ToList();
-            for (var i = 0; i < tss.Count; i++)
-            {
-                var act = actions[i].Split('-');
-                if (act[0] != tss[i][0] || act[1] != tss[i][1])
-                {
-                    throw new Exception();
-                }
-                Console.WriteLine($"{tss[i][0]}-{tss[i][1]}");
-            }
+            graph[point].Remove(gateway);
+            graph[gateway].Remove(point);
+
+            start = pt.Count > 2 ? pt[1] : pt[0];
         }
-        catch (Exception ex)
+
+        foreach (var act in actions
+                     .OrderBy(a => a.Split('-')[0]) 
+                     .ThenBy(a => a.Split('-')[1]))
         {
-            var t = tests.ToString();
-            throw new Exception(t);
+            Console.WriteLine(act);
         }
     }
 
-    private static (string Gateway,string Point, List<string> Path)? FindNearestGateway(
+    private static (string Gateway, List<string> Path)? FindNearestGateway(
         string start,
         Dictionary<string, HashSet<string>> graph,
         HashSet<string> gateways)
@@ -81,7 +104,6 @@ public static class Program
         var queue = new Queue<(string Node, List<string> Path)>();
         var visited = new HashSet<string> { start };
 
-        var shh = new Dictionary<string,(string node, int length)>();
         queue.Enqueue((start, new List<string> { start }));
 
         var nearest = new List<(string Gateway, List<string> Path)>();
@@ -96,29 +118,22 @@ public static class Program
                 continue;
             }
 
-            foreach (var neighbor in graph[node])
-            {
-                if (gateways.Contains(neighbor) || visited.Add(neighbor))
+            foreach (var neighbor in graph[node].OrderBy(n => n, StringComparer.Ordinal))
+                if (visited.Add(neighbor))
                 {
                     var newPath = new List<string>(path) { neighbor };
                     queue.Enqueue((neighbor, newPath));
                 }
-                
-            }
         }
 
         if (nearest.Count == 0) return null;
-
-        var r = nearest
+        
+        var result = nearest
             .OrderBy(x => x.Path.Count)
-            .ThenBy(x => x.Gateway);
-        var greatPt = r.ThenBy(x => x.Path[^2]).First(); 
-        nearest.Remove(greatPt);
-        if (nearest.Count == 0)
-        {
-            return (greatPt.Gateway, greatPt.Path[0], greatPt.Path);
-        }
-        var virusStart = r.ThenBy(x => x.Path[1]).First();
-        return (greatPt.Gateway, virusStart.Path[1], greatPt.Path);
+            .ThenBy(x => x.Gateway)
+            .ThenBy(p => string.Join(",", p.Path), StringComparer.Ordinal)
+            .First();
+
+        return result;
     }
 }
