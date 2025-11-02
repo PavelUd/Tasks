@@ -65,7 +65,7 @@ public class Program
             string point;
             if (pt.Count == 2)
             {
-                 point = pt[^2];
+                point = pt[^2];
                 actions.Add($"{gateway}-{point}");
             }
             else
@@ -88,9 +88,7 @@ public class Program
             start = pt.Count > 2 ? pt[1] : pt[0];
         }
 
-        foreach (var act in actions
-                     .OrderBy(a => a.Split('-')[0]) 
-                     .ThenBy(a => a.Split('-')[1]))
+        foreach (var act in actions)
         {
             Console.WriteLine(act);
         }
