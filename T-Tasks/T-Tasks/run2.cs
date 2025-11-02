@@ -66,6 +66,11 @@ public class Program
             if (pt.Count == 2)
             {
                 point = pt[^2];
+                gateways[gateway].Remove(point);
+                if (!gateways[gateway].Any())
+                {
+                    gateways.Remove(gateway);
+                }
                 actions.Add($"{gateway}-{point}");
             }
             else
@@ -85,7 +90,8 @@ public class Program
             graph[point].Remove(gateway);
             graph[gateway].Remove(point);
 
-            start = pt.Count > 2 ? pt[1] : pt[0];
+            var pathfff = FindNearestGateway(start, graph, gateways.Keys.ToHashSet());
+            start = pathfff == null ? start : pathfff.Value.Path[1];
         }
 
         foreach (var act in actions)
@@ -129,8 +135,8 @@ public class Program
         var result = nearest
             .OrderBy(x => x.Path.Count)
             .ThenBy(x => x.Gateway)
-            .ThenBy(p => string.Join(",", p.Path), StringComparer.Ordinal)
-            .First();
+            .ThenBy(p => string.Join(",", p.Path), StringComparer.Ordinal).First();
+        
 
         return result;
     }
